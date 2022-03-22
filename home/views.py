@@ -1,24 +1,41 @@
-from unicodedata import category
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 import random
 from .models import *
 
 
 # Create your views here.
 def home(request):
-    return HttpResponse('Hello from Django')
+    context = {'categories': Category.objects.all()}
+
+    if request.GET.get('category'):
+        return redirect(f"/quiz/?category={request.GET.get('category')}")
+
+    return render(request,'home.html', context)
+
+
+def quiz(request):
+    context = {'category': request.GET.get('category')}
+    return render(request, 'quiz.html', context)
+
 
 def get_quiz(request):
     try:
-        question_objs = list(Question.objects.all())
+        question_objs = Question.objects.all()
+        if request.GET.get('category'):
+            question_objs = question_objs.filter(category__category_name__icontains=request.GET.get('category'))
+
+        question_objs = list(question_objs)
+
         data=[]
         random.shuffle(question_objs)
         for question_obj in question_objs:
             data.append({
+                "uid": question_obj.category.uid,
                 "category" : question_obj.category.category_name,
                 "question" : question_obj.question,
                 "marks" : question_obj.marks,
+                "answers": question_obj.get_answers(),
             })
         payload = {'status': True, 'data': data}
 

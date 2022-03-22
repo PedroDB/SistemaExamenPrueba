@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3"
+      crossorigin="anonymous"
+    />
+
+    <title>Django Examen App</title>
+  </head>
+  <body>
+    <div id="app">
+      <div class="container mt-5 pt-5">
+        <div class="col-md-6 mx-auto">
+          <h3>Examen de Programacion</h3>
+          <div v-for="question in questions">
+            <hr />
+            <p>[[question.question]]</p>
+            <div class="form-check" v-for="answer in question.answers">
+              <input
+                @change="checkAnswer($event, question.uid)"
+                :value="answer.answer"
+                class="form-check-input"
+                type="radio"
+                name="flexRadioDefault"
+                id="flexRadioDefault1"
+              />
+              <label class="form-check-label" for="flexRadioDefault1">
+                [[answer.answer]]
+              </label>
+            </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.js"></script>
+    <script>
+      const app = new Vue({
+        mode: "production",
+        el: "#app",
+        delimiters: ["[[", "]]"],
+        data() {
+          return {
+            category: "{{category}}",
+            questions: [],
+          };
+        },
+        methods: {
+          getQuestions() {
+            var _this = this;
+            fetch(`/api/get_quiz/?category=${_this.category}`)
+              .then((response) => response.json())
+              .then((result) => {
+                console.log(result);
+                _this.questions = result.data;
+              });
+          },
+          checkAnswer(event, uid) {
+            this.questions.map(question=>{
+              answers= question.answers
+              for (let i = 0; i < answers.length; i++) {
+                if (answers[i].answer == event.target.value) {
+                  if (answers[i].is_correct) {
+                    console.log('Correcto')
+                    alert('Tu respuesta es correcta')
+                    
+                  }else{
+                    console.log('Incorrecto')
+                    alert('Tu respuesta es incorrecta')
+
+                  }
+                }
+              }
+            })
+            console.log(event.target.value, uid)
+          },
+        },
+        created() {
+          this.getQuestions();
+          console.log("Page Loaded");
+        },
+      });
+    </script>
+    <!--<script>
+      const consultaApi = async() => {
+        //const category = document.getElementById("category");
+        let peticion = await fetch(`/api/get_quiz/?category=${'Python'}`);
+
+        let response = await peticion.json();
+        let data = response.data;
+        let cosas = data.map(element => {
+          let {question, answers} = element;
+          return {question, answers};
+        });
+        
+        return cosas;
+      };
+     
+    const datosRecibidos = async() =>{
+      let datos = await consultaApi();
+      datos.forEach(dato => {
+        const pregunta = document.getElementById("preguntas");
+        let newcontent = document.createElement('p');
+        let newEnter = document.createElement('br');
+        newcontent.innerHTML = dato.question;
+        pregunta.appendChild(newcontent.firstChild);
+        pregunta.appendChild(newEnter);
+
+
+        const respuesta = document.getElementById("respuestas");
+        let newcontent2 = document.createElement('p');
+        let newEnter2 = document.createElement('br');
+        dato.answers.forEach(element => {
+          console.log(element);
+          newcontent2.innerHTML = element.answer;
+          respuesta.appendChild(newcontent2.firstChild);
+          respuesta.appendChild(newEnter2);
+        });
+      });
+
+      
+    }
+
+    datosRecibidos();
+      //const respuesta = consultaApi();
+      //console.log(respuesta) //Promesa
+    </script> -->
+  </body>
+</html>
